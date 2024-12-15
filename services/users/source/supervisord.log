@@ -1,0 +1,48 @@
+2024-12-15 21:59:12,981 CRIT Supervisor is running as root.  Privileges were not dropped because no user is specified in the config file.  If you intend to run as root, you can set user=root in the config file to avoid this message.
+2024-12-15 21:59:12,984 INFO supervisord started with pid 1
+2024-12-15 21:59:13,986 INFO spawned: 'horizon' with pid 7
+2024-12-15 21:59:13,987 INFO spawned: 'php-fpm' with pid 8
+2024-12-15 21:59:14,328 WARN exited: horizon (exit status 1; not expected)
+2024-12-15 21:59:15,336 INFO spawned: 'horizon' with pid 13
+2024-12-15 21:59:15,337 INFO success: php-fpm entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2024-12-15 21:59:15,537 WARN exited: horizon (exit status 1; not expected)
+2024-12-15 21:59:17,548 INFO spawned: 'horizon' with pid 16
+2024-12-15 21:59:17,736 WARN exited: horizon (exit status 1; not expected)
+2024-12-15 21:59:20,758 INFO spawned: 'horizon' with pid 31
+2024-12-15 21:59:20,957 WARN exited: horizon (exit status 1; not expected)
+2024-12-15 21:59:21,960 INFO gave up: horizon entered FATAL state, too many start retries too quickly
+2024-12-15 22:01:31,637 WARN received SIGQUIT indicating exit request
+2024-12-15 22:01:31,640 INFO waiting for php-fpm to die
+2024-12-15 22:01:32,664 INFO stopped: php-fpm (exit status 0)
+2024-12-15 22:02:11,879 CRIT Supervisor is running as root.  Privileges were not dropped because no user is specified in the config file.  If you intend to run as root, you can set user=root in the config file to avoid this message.
+2024-12-15 22:02:11,880 INFO supervisord started with pid 1
+2024-12-15 22:02:12,891 INFO spawned: 'horizon' with pid 7
+2024-12-15 22:02:12,896 INFO spawned: 'php-fpm' with pid 8
+2024-12-15 22:02:13,099 WARN exited: horizon (exit status 1; not expected)
+2024-12-15 22:02:14,106 INFO spawned: 'horizon' with pid 13
+2024-12-15 22:02:14,107 INFO success: php-fpm entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2024-12-15 22:02:14,294 WARN exited: horizon (exit status 1; not expected)
+2024-12-15 22:02:16,308 INFO spawned: 'horizon' with pid 28
+2024-12-15 22:02:16,495 WARN exited: horizon (exit status 1; not expected)
+2024-12-15 22:02:19,508 INFO spawned: 'horizon' with pid 31
+2024-12-15 22:02:19,707 WARN exited: horizon (exit status 1; not expected)
+2024-12-15 22:02:20,713 INFO gave up: horizon entered FATAL state, too many start retries too quickly
+2024-12-15 22:02:32,775 INFO reaped unknown pid 64 (exit status 0)
+2024-12-15 22:03:22,044 INFO reaped unknown pid 101 (exit status 0)
+2024-12-15 22:03:39,120 INFO reaped unknown pid 153 (exit status 0)
+2024-12-15 22:47:20,520 WARN received SIGQUIT indicating exit request
+2024-12-15 22:47:20,528 INFO waiting for php-fpm to die
+2024-12-15 22:47:21,558 INFO stopped: php-fpm (exit status 0)
+2024-12-15 22:48:16,666 CRIT Supervisor is running as root.  Privileges were not dropped because no user is specified in the config file.  If you intend to run as root, you can set user=root in the config file to avoid this message.
+2024-12-15 22:48:16,668 INFO supervisord started with pid 1
+2024-12-15 22:48:17,677 INFO spawned: 'horizon' with pid 7
+2024-12-15 22:48:17,680 INFO spawned: 'php-fpm' with pid 8
+2024-12-15 22:48:18,039 WARN exited: horizon (exit status 1; not expected)
+2024-12-15 22:48:19,049 INFO spawned: 'horizon' with pid 13
+2024-12-15 22:48:19,050 INFO success: php-fpm entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2024-12-15 22:48:19,241 WARN exited: horizon (exit status 1; not expected)
+2024-12-15 22:48:21,259 INFO spawned: 'horizon' with pid 16
+2024-12-15 22:48:21,480 WARN exited: horizon (exit status 1; not expected)
+2024-12-15 22:48:24,496 INFO spawned: 'horizon' with pid 19
+2024-12-15 22:48:24,709 WARN exited: horizon (exit status 1; not expected)
+2024-12-15 22:48:25,713 INFO gave up: horizon entered FATAL state, too many start retries too quickly

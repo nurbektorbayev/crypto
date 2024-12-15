@@ -1,0 +1,31 @@
+services:
+  api_gateway_app:
+    build:
+      context: ../../  # Контекст сборки теперь на 2 уровня выше, в services
+      dockerfile: common/laravel/Dockerfile  # Путь к Dockerfile внутри папки common/laravel\
+      args:
+        PROJECT_NAME: api_gateway
+    container_name: api_gateway_app
+    volumes:
+      - ../source:/var/www  # Монтируем исходный код Laravel в контейнер
+    networks:
+      - crypto_network
+    environment:
+      - APP_ENV=local
+      - APP_DEBUG=true
+
+  api_gateway_nginx:
+    image: nginx:alpine
+    container_name: api_gateway_nginx
+    restart: unless-stopped
+    ports:
+      - ${NGINX_EXT_PORT}:80
+    volumes:
+      - ../source:/var/www  # Монтируем исходный код Laravel в контейнер
+      - ./nginx/:/etc/nginx/conf.d/
+    networks:
+      - crypto_network
+
+networks:
+  crypto_network:
+    driver: bridge

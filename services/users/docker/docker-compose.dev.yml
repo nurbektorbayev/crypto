@@ -1,0 +1,51 @@
+services:
+  users_app:
+    build:
+      context: ../../  # Контекст сборки теперь на 2 уровня выше, в services
+      dockerfile: common/laravel/Dockerfile  # Путь к Dockerfile внутри папки common/laravel
+      args:
+        PROJECT_NAME: users
+    container_name: users_app
+    volumes:
+      - ../source:/var/www  # Монтируем исходный код Laravel в контейнер
+    networks:
+      - crypto_network
+    depends_on:
+      - users_db
+    environment:
+      - APP_ENV=local
+      - APP_DEBUG=true
+      - DB_CONNECTION=pgsql
+      - DB_HOST=users_db
+      - DB_PORT=5432
+      - DB_DATABASE=${DB_POSTGRES_DATABASE}
+      - DB_USERNAME=${DB_POSTGRES_USERNAME}
+      - DB_PASSWORD=${DB_POSTGRES_PASSWORD}
+
+  users_db:
+    image: postgres:13  # Используем официальный образ PostgreSQL
+    container_name: users_db
+    environment:
+      - POSTGRES_DB=${DB_POSTGRES_DATABASE}
+      - POSTGRES_USER=${DB_POSTGRES_USERNAME}
+      - POSTGRES_PASSWORD=${DB_POSTGRES_PASSWORD}
+    volumes:
+      - ./db/data:/var/lib/postgresql/data  # Прокидываем volume для хранения данных
+    networks:
+      - crypto_network
+    ports:
+      - ${DB_POSTGRES_EXT_PORT}:5432
+
+  users_nginx:
+    image: nginx:alpine
+    container_name: users_nginx
+    restart: unless-stopped
+    volumes:
+      - ../source:/var/www  # Монтируем исходный код Laravel в контейнер
+      - ./nginx/:/etc/nginx/conf.d/
+    networks:
+      - crypto_network
+
+networks:
+  crypto_network:
+    driver: bridge
