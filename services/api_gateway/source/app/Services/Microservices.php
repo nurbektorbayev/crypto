@@ -8,16 +8,16 @@ class Microservices
 {
     public const USERS_MICROSERVICE_NAME = 'users';
 
-    public static function getAll(): array
+    public function getAll(): array
     {
         return config('microservices');
     }
 
-    public static function getAllWithUrl(): array
+    public function getAllWithUrl(): array
     {
         $result = [];
 
-        foreach (self::getAll() as $service => $params) {
+        foreach ($this->getAll() as $service => $params) {
             if (!isset($params['url'])) {
                 continue;
             }
@@ -28,22 +28,16 @@ class Microservices
         return $result;
     }
 
-    public static function getUsersMicroserviceUrl(): string
+    public function getUrlByMicroservice(string $service): string
     {
-        foreach (self::getAllWithUrl() as $service => $url) {
-            if ($service === self::USERS_MICROSERVICE_NAME) {
-                return $url;
-            }
-        }
-
-        throw new \Exception('Users microservice not found');
+        return $this->getAll()[$service]['url'];
     }
 
-    public static function getAllPublicRoutes(): array
+    public function getAllPublicRoutes(): array
     {
         $result = [];
 
-        foreach (self::getAll() as $service => $params) {
+        foreach ($this->getAll() as $service => $params) {
             $publicRoutes = $params['public_routes'] ?? [];
 
             foreach ($publicRoutes as $publicRoute) {

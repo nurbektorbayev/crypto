@@ -1,8 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Providers;
 
-use App\Services\TelegramService;
+use App\Services\RabbitMQService;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -12,19 +14,34 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        $this->app->singleton(TelegramService::class, function () {
-            $apiUrl = config('services.telegram.api_url');
-            $botToken = config('services.telegram.bot_token');
+        $this->app->singleton(RabbitMQService::class, function () {
+            $host = config('services.rabbitmq.host');
+            $port = config('services.rabbitmq.port');
+            $username = config('services.rabbitmq.username');
+            $password = config('services.rabbitmq.password');
+            $queue = config('services.rabbitmq.queue');
 
-            if (empty($apiUrl)) {
-                throw new \Exception('Telegram error: check API URL in .env');
+            if (empty($host)) {
+                throw new \Exception('RabbitMQ error: check HOST in .env');
             }
 
-            if (empty($botToken)) {
-                throw new \Exception('Telegram error: check bot token in .env');
+            if (empty($port)) {
+                throw new \Exception('RabbitMQ error: check PORT in .env');
             }
 
-            return new TelegramService($apiUrl . '/bot' . $botToken . '/');
+            if (empty($username)) {
+                throw new \Exception('RabbitMQ error: check USERNAME in .env');
+            }
+
+            if (empty($password)) {
+                throw new \Exception('RabbitMQ error: check PASSWORD in .env');
+            }
+
+            if (empty($queue)) {
+                throw new \Exception('RabbitMQ error: check QUEUE in .env');
+            }
+
+            return new RabbitMQService($host, $port, $username, $password, $queue);
         });
     }
 

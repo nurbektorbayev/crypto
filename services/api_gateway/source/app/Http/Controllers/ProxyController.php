@@ -14,10 +14,14 @@ use Illuminate\Support\Facades\Http;
 
 class ProxyController extends Controller
 {
+    public function __construct(private Microservices $microservices)
+    {
+    }
+
     public function forward(Request $request, $service): Application|Response|JsonResponse|ResponseFactory
     {
         // Карта сервисов
-        $services = Microservices::getAllWithUrl();
+        $services = $this->microservices->getAllWithUrl();
 
         // Проверяем, существует ли запрашиваемый сервис
         if (!array_key_exists($service, $services)) {

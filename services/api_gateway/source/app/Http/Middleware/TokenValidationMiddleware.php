@@ -12,6 +12,11 @@ use Illuminate\Support\Facades\Log;
 
 class TokenValidationMiddleware
 {
+    public function __construct(private Microservices $microservices)
+    {
+
+    }
+
     public function handle(Request $request, Closure $next)
     {
         // Пропускаем валидацию токена для /users/login и /users/register
@@ -33,13 +38,13 @@ class TokenValidationMiddleware
     // Проверка, является ли путь публичным (не требует токена)
     private function isPublicRoute(Request $request): bool
     {
-        return in_array($request->path(), Microservices::getAllPublicRoutes());
+        return in_array($request->path(), $this->microservices->getAllPublicRoutes());
     }
 
     // Логика для валидации токена
     private function isValidToken(string $token): bool
     {
-        $usersMicroserviceUrl = Microservices::getUsersMicroserviceUrl();
+        $usersMicroserviceUrl = $this->microservices->getUrlByMicroservice(Microservices::USERS_MICROSERVICE_NAME);
         $validateTokenUrl = $usersMicroserviceUrl . '/api/validate-token';
 
         // Отправляем запрос на сервис users для проверки токена

@@ -11,8 +11,14 @@ services:
     networks:
       - crypto_network
     environment:
-      - APP_ENV=local
-      - APP_DEBUG=true
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_PORT=5672
+      - RABBITMQ_USERNAME=${RABBITMQ_USERNAME}
+      - RABBITMQ_PASSWORD=${RABBITMQ_PASSWORD}
+      - RABBITMQ_QUEUE_USERS=users_microservice
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
 
   api_gateway_nginx:
     image: nginx:alpine

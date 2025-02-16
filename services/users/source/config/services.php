@@ -35,8 +35,11 @@ return [
         ],
     ],
 
-    'telegram' => [
-        'bot_token' => env('TELEGRAM_BOT_TOKEN', 'telegram_bot_token'),
-        'api_url' => env('TELEGRAM_API_URL', 'https://api.telegram.org'),
+    'rabbitmq' => [
+        'host' => env('RABBITMQ_HOST', 'rabbitmq'),
+        'port' => (int) env('RABBITMQ_PORT', 5672),
+        'username' => env('RABBITMQ_USERNAME', 'crypto_admin'),
+        'password' => env('RABBITMQ_PASSWORD', 'secret'),
+        'queue' => env('RABBITMQ_QUEUE', 'users_microservice'),
     ],
 ];

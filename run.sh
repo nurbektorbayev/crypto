@@ -3,17 +3,13 @@
 # Функция для поднятия контейнеров
 up() {
   SERVICE=$1
-  ENVIRONMENT=$2
 
-  # Если окружение не указано, используем dev по умолчанию
-  ENVIRONMENT=${ENVIRONMENT:-dev}
+  # Путь до docker-compose для указанного сервиса
+  DOCKER_COMPOSE_PATH="./services/$SERVICE/docker/docker-compose.yml"
 
-  # Путь до docker-compose для указанного сервиса и окружения
-  DOCKER_COMPOSE_PATH="./services/$SERVICE/docker/docker-compose.$ENVIRONMENT.yml"
-
-  # Проверяем, существует ли файл docker-compose для указанного сервиса и окружения
+  # Проверяем, существует ли файл docker-compose для указанного сервиса
   if [ ! -f "$DOCKER_COMPOSE_PATH" ]; then
-    echo "Файл docker-compose для сервиса '$SERVICE' с окружением '$ENVIRONMENT' не найден."
+    echo "Файл docker-compose для сервиса '$SERVICE' не найден."
     exit 1
   fi
 
@@ -29,30 +25,26 @@ up() {
     echo ".env.example не найден. .env файл не будет создан."
   fi
 
-  # Запускаем docker-compose для указанного сервиса и окружения в фоновом режиме
-  echo "Запуск сервиса $SERVICE с окружением $ENVIRONMENT в фоновом режиме..."
-  docker compose -f $DOCKER_COMPOSE_PATH up -d --build
+  # Запускаем docker-compose для указанного сервиса в фоновом режиме
+  echo "Запуск сервиса $SERVICE..."
+  docker compose -f $DOCKER_COMPOSE_PATH -p crypto up -d --build
 }
 
 # Функция для остановки контейнеров
 down() {
   SERVICE=$1
-  ENVIRONMENT=$2
 
-  # Если окружение не указано, используем dev по умолчанию
-  ENVIRONMENT=${ENVIRONMENT:-dev}
+  # Путь до docker-compose для указанного сервиса
+  DOCKER_COMPOSE_PATH="./services/$SERVICE/docker/docker-compose.yml"
 
-  # Путь до docker-compose для указанного сервиса и окружения
-  DOCKER_COMPOSE_PATH="./services/$SERVICE/docker/docker-compose.$ENVIRONMENT.yml"
-
-  # Проверяем, существует ли файл docker-compose для указанного сервиса и окружения
+  # Проверяем, существует ли файл docker-compose для указанного сервиса
   if [ ! -f "$DOCKER_COMPOSE_PATH" ]; then
-    echo "Файл docker-compose для сервиса '$SERVICE' с окружением '$ENVIRONMENT' не найден."
+    echo "Файл docker-compose для сервиса '$SERVICE' не найден."
     exit 1
   fi
 
   # Останавливаем контейнеры с помощью docker-compose
-  echo "Остановка сервиса $SERVICE с окружением $ENVIRONMENT..."
+  echo "Остановка сервиса $SERVICE..."
   docker compose -f $DOCKER_COMPOSE_PATH down
 }
 
@@ -92,15 +84,15 @@ if [ -z "$1" ]; then
 fi
 
 COMMAND=$1
-ENVIRONMENT=$3  # Третья переменная - это окружение, например, dev или prod. Является суффиксом контейнера при exec
+CONTAINER_SUFFIX=$3  # Суффикс контейнера при exec (по умолчанию "app")
 
 # В зависимости от команды выполняем нужную функцию
 if [ "$COMMAND" == "up" ]; then
-  up $SERVICE $ENVIRONMENT
+  up $SERVICE
 elif [ "$COMMAND" == "down" ]; then
-  down $SERVICE $ENVIRONMENT
+  down $SERVICE
 elif [ "$COMMAND" == "exec" ]; then
-  exec_in_container $SERVICE $ENVIRONMENT
+  exec_in_container $SERVICE $CONTAINER_SUFFIX
 else
   echo "Неизвестная команда '$COMMAND'. Используйте 'up', 'down' или 'exec'."
   exit 1

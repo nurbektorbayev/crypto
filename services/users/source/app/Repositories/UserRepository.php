@@ -5,48 +5,40 @@ declare(strict_types=1);
 namespace App\Repositories;
 
 use App\Enums\User\UserStatus;
-use App\Http\Requests\Api\Auth\RegisterWithEmailRequest;
-use App\Http\Requests\Api\Auth\RegisterWithTelegramRequest;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 
 class UserRepository
 {
-    public function registerWithTelegram(RegisterWithTelegramRequest $request): User
+    public function registerWithTelegram(array $data, ?User $user): User
     {
-        $validated = $request->validated();
-        $model = $request->user();
-
-        if (!$model) {
-            $model = new User();
-            $model->status = UserStatus::Active;
+        if (!$user) {
+            $user = new User();
+            $user->status = UserStatus::Active;
         }
 
-        $model->name = $validated['name'];
-        $model->telegram_id = $validated['telegram_id'];
+        $user->name = $data['name'];
+        $user->telegram_id = $data['telegram_id'];
 
-        $model->save();
+        $user->save();
 
-        return $model;
+        return $user;
     }
 
-    public function registerWithEmail(RegisterWithEmailRequest $request): User
+    public function registerWithEmail(array $data, ?User $user): User
     {
-        $validated = $request->validated();
-        $model = $request->user();
-
-        if (!$model) {
-            $model = new User();
-            $model->status = UserStatus::Active;
+        if (!$user) {
+            $user = new User();
+            $user->status = UserStatus::Active;
         }
 
-        $model->name = $validated['name'];
-        $model->email = $validated['email'];
-        $model->password = Hash::make($validated['password']);
+        $user->name = $data['name'];
+        $user->email = $data['email'];
+        $user->password = Hash::make($data['password']);
 
-        $model->save();
+        $user->save();
 
-        return $model;
+        return $user;
     }
 
     public function findOneByEmail(string $email): ?User
@@ -65,6 +57,17 @@ class UserRepository
         /** @var User|null $model */
         $model = User::query()
             ->where('telegram_id', $telegramId)
+            ->where('status', UserStatus::Active)
+            ->first();
+
+        return $model;
+    }
+
+    public function findOneById(int $id): ?User
+    {
+        /** @var User|null $model */
+        $model = User::query()
+            ->where('id', $id)
             ->where('status', UserStatus::Active)
             ->first();
 
