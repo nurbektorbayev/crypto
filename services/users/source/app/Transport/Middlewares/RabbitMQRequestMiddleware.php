@@ -51,7 +51,7 @@ class RabbitMQRequestMiddleware
             // Передаем управление в основной обработчик
             return $next($message, $request);
         } catch (\Exception $e) {
-            $this->sendError($replyTo, $correlationId, $e->getCode(), $e->getMessage());
+            $this->sendError($replyTo, $correlationId, 500, $e->getMessage());
             return null;
         }
     }

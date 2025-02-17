@@ -4,19 +4,20 @@ declare(strict_types=1);
 
 namespace App\Services\Microservices;
 
-use App\Transport\Requests\RabbitMQRequest;
+use App\Http\Requests\ApiRequest;
+use App\Services\RabbitMQService;
 
 abstract class AbstractMicroservice
 {
-    private RabbitMQRequest $rabbitMQRequest;
+    protected RabbitMQService $rabbitMQService;
 
-    public function __construct(private array $config)
+    public function __construct(protected string $queue)
     {
-        $this->rabbitMQRequest = app()->make(RabbitMQRequest::class);
+        $this->rabbitMQService = app()->make(RabbitMQService::class);
     }
 
-    public function doRequest()
+    public function doRequest(ApiRequest $request, string $action): ?array
     {
-        $this->rabbitMQRequest->doRequest();
+        return $this->rabbitMQService->sendRpcRequest($this->queue, $action, $request->toArray());
     }
 }

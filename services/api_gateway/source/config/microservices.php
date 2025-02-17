@@ -2,15 +2,8 @@
 
 return [
     'users' => [
-        'url' => 'http://users_nginx',
-        'public_routes' => [
-            'auth/register-via-telegram',
-            'auth/register-via-email',
-            'auth/login-via-telegram',
-            'auth/login-via-email',
-        ],
+        'queue' => env('RABBITMQ_QUEUE_USERS', 'users'),
     ],
     'rates' => [
-        'url' => 'http://rates_app',
     ],
 ];

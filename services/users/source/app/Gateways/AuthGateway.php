@@ -8,6 +8,7 @@ use App\Transport\Requests\Auth\LoginWithEmailRequest;
 use App\Transport\Requests\Auth\LoginWithTelegramRequest;
 use App\Transport\Requests\Auth\RegisterWithEmailRequest;
 use App\Transport\Requests\Auth\RegisterWithTelegramRequest;
+use App\Transport\Requests\Auth\ValidateTokenRequest;
 use App\Transport\Responses\FormattedJSONResponse;
 use App\Transport\Responses\TransformsResponses;
 use App\Transport\Transformers\User\UserTransformer;
@@ -50,5 +51,11 @@ class AuthGateway
         $user = $this->userRepository->findOneByEmail($request->validated('email'));
 
         return FormattedJSONResponse::show($this->convertModelJsonData($request, $user, ['token']), 'User logged in successfully');
+    }
+
+    // Метод для валидации токена
+    public function validateToken(ValidateTokenRequest $request): JsonResponse
+    {
+        return FormattedJSONResponse::show([], 'Token is valid');
     }
 }

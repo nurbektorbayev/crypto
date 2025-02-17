@@ -32,6 +32,8 @@ class RabbitMQService
             'correlation_id' => $correlationId
         ]);
 
+        info(serialize($msg));
+
         $this->channel->basic_publish($msg, '', $replyTo);
     }
 

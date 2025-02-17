@@ -22,19 +22,27 @@ class RabbitMQService
     /**
      * 📌 Отправка RPC-запроса (API Gateway → Users)
      */
-    public function sendRpcRequest(string $queue, array $message, int $timeout = 5): ?array
+    public function sendRpcRequest(string $queue, string $action, array $data, int $timeout = 5): ?array
     {
         // Объявляем очередь (гарантируем, что она существует)
         $this->channel->queue_declare($queue, false, true, false, false);
 
         // Создаем временную очередь для ответа
-        $callbackQueue = $this->channel->queue_declare("", false, false, true, false)[0];
+        $replyQueue = $queue . '.reply';
+        $this->channel->queue_declare($replyQueue, false, false, false, false);
+
         $correlationId = uniqid();
+
+        $message = [
+            'action' => $action,
+            'data' => $data
+        ];
 
         // Создаем сообщение
         $msg = new AMQPMessage(json_encode($message), [
             'correlation_id' => $correlationId,
-            'reply_to' => $callbackQueue
+            'reply_to' => $replyQueue,
+            'delivery_mode'  => 2, // 2 = Персистентное сообщение
         ]);
 
         // Отправляем сообщение в очередь RabbitMQ
@@ -46,17 +54,23 @@ class RabbitMQService
 
         $callback = function ($msg) use (&$response, $correlationId) {
             if ($msg->get('correlation_id') === $correlationId) {
-                $response = json_decode($msg->body, true);
+                $response = json_decode($msg->getBody(), true);
             }
         };
 
-        $this->channel->basic_consume($callbackQueue, '', false, true, false, false, $callback);
+        $this->channel->basic_consume($replyQueue, '', false, true, false, false, $callback);
 
-        while (!$response) {
+//        while (!$response) {
+//            $this->channel->wait();
+//        }
+//
+//        return $response;
+
+        while ($response === null) {
             $this->channel->wait(null, false, 1); // Ждем 1 секунду
 
             if ((time() - $startTime) > $timeout) {
-                return ['error' => true, 'message' => 'Микросервис Users не отвечает'];
+                throw new \Exception('Microservice has not responded');
             }
         }
 

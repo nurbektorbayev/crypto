@@ -10,6 +10,7 @@ use App\Transport\Requests\Auth\LoginWithEmailRequest;
 use App\Transport\Requests\Auth\LoginWithTelegramRequest;
 use App\Transport\Requests\Auth\RegisterWithEmailRequest;
 use App\Transport\Requests\Auth\RegisterWithTelegramRequest;
+use App\Transport\Requests\Auth\ValidateTokenRequest;
 use App\Transport\Requests\User\GetUserRequest;
 
 enum RabbitMQAction: string
@@ -28,6 +29,7 @@ enum RabbitMQAction: string
     case LOGIN_WITH_TELEGRAM = 'login_with_telegram';
     case REGISTER_WITH_EMAIL = 'register_with_email';
     case REGISTER_WITH_TELEGRAM = 'register_with_telegram';
+    case VALIDATE_TOKEN = 'validate_token';
 
     public function getRequestClass(): string
     {
@@ -37,6 +39,7 @@ enum RabbitMQAction: string
             self::LOGIN_WITH_TELEGRAM => LoginWithTelegramRequest::class,
             self::REGISTER_WITH_EMAIL => RegisterWithEmailRequest::class,
             self::REGISTER_WITH_TELEGRAM => RegisterWithTelegramRequest::class,
+            self::VALIDATE_TOKEN => ValidateTokenRequest::class,
         };
     }
 
@@ -48,6 +51,7 @@ enum RabbitMQAction: string
             self::LOGIN_WITH_TELEGRAM => [AuthGateway::class, 'loginWithTelegram'],
             self::REGISTER_WITH_EMAIL => [AuthGateway::class, 'registerWithEmail'],
             self::REGISTER_WITH_TELEGRAM => [AuthGateway::class, 'registerWithTelegram'],
+            self::VALIDATE_TOKEN => [AuthGateway::class, 'validateToken'],
         };
     }
 }

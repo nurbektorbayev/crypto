@@ -40,6 +40,6 @@ return [
         'port' => (int) env('RABBITMQ_PORT', 5672),
         'username' => env('RABBITMQ_USERNAME', 'crypto_admin'),
         'password' => env('RABBITMQ_PASSWORD', 'secret'),
-        'queue' => env('RABBITMQ_QUEUE', 'users_microservice'),
+        'queue' => env('RABBITMQ_QUEUE', 'users'),
     ],
 ];
