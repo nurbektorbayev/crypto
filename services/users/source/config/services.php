@@ -42,4 +42,8 @@ return [
         'password' => env('RABBITMQ_PASSWORD', 'secret'),
         'queue' => env('RABBITMQ_QUEUE', 'users'),
     ],
+
+    'telegram' => [
+        'api_url' => env('TELEGRAM_API_URL', 'https://api.telegram.org/bot'),
+    ],
 ];

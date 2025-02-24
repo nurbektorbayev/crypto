@@ -6,11 +6,9 @@ namespace App\Gateways;
 
 use App\Repositories\UserRepository;
 use App\Transport\Requests\User\GetUserRequest;
-use App\Transport\Responses\FormattedJSONResponse;
 use App\Transport\Responses\TransformsResponses;
 use App\Transport\Transformers\User\UserTransformer;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
-use Illuminate\Http\JsonResponse;
 
 class UserGateway
 {
@@ -21,7 +19,7 @@ class UserGateway
         $this->setModelTransformer(new UserTransformer());
     }
 
-    public function getUserByRequest(GetUserRequest $request): JsonResponse
+    public function getUserByRequest(GetUserRequest $request): array
     {
         $model = $this->userRepository->findOneById($request->get('id'));
 
@@ -29,6 +27,6 @@ class UserGateway
             throw new ModelNotFoundException('User not found');
         }
 
-        return FormattedJSONResponse::show($this->convertModelJsonData($request, $model));
+        return $this->convertModelJsonData($request, $model);
     }
 }

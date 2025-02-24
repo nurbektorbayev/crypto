@@ -22,19 +22,19 @@ class AppServiceProvider extends ServiceProvider
             $password = config('services.rabbitmq.password');
 
             if (empty($host)) {
-                throw new \Exception('RabbitMQ error: check HOST in .env');
+                throw new \Exception('RabbitMQ error: check RABBITMQ_HOST in .env');
             }
 
             if (empty($port)) {
-                throw new \Exception('RabbitMQ error: check PORT in .env');
+                throw new \Exception('RabbitMQ error: check RABBITMQ_PORT in .env');
             }
 
             if (empty($username)) {
-                throw new \Exception('RabbitMQ error: check USERNAME in .env');
+                throw new \Exception('RabbitMQ error: check RABBITMQ_USERNAME in .env');
             }
 
             if (empty($password)) {
-                throw new \Exception('RabbitMQ error: check PASSWORD in .env');
+                throw new \Exception('RabbitMQ error: check RABBITMQ_PASSWORD in .env');
             }
 
             return new RabbitMQService($host, $port, $username, $password);
@@ -44,7 +44,7 @@ class AppServiceProvider extends ServiceProvider
             $queue = config('microservices.users.queue');
 
             if (empty($queue)) {
-                throw new \Exception('Users microservice error: check QUEUE in .env');
+                throw new \Exception('Users microservice error: check RABBITMQ_QUEUE_USERS in .env');
             }
 
             return new UsersMicroservice($queue);

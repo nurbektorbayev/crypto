@@ -7,23 +7,61 @@ namespace App\Services;
 use PhpAmqpLib\Connection\AMQPStreamConnection;
 use PhpAmqpLib\Channel\AMQPChannel;
 use PhpAmqpLib\Message\AMQPMessage;
+use App\Exceptions\MicroserviceException;
 
 class RabbitMQService
 {
-    private AMQPStreamConnection $connection;
-    private AMQPChannel $channel;
+    private ?AMQPStreamConnection $connection = null;
+    private ?AMQPChannel $channel = null;
+    private string $host;
+    private int $port;
+    private string $username;
+    private string $password;
+    private int $heartbeatInterval = 30; // Heartbeat every 30 seconds
+    private bool $keepAlive = true; // Enable TCP keepalive
 
     public function __construct(string $host, int $port, string $username, string $password)
     {
-        $this->connection = new AMQPStreamConnection($host, $port, $username, $password);
-        $this->channel = $this->connection->channel();
+        $this->host = $host;
+        $this->port = $port;
+        $this->username = $username;
+        $this->password = $password;
+    }
+
+    /**
+     * 📌 Инициализация соединения (Lazy Initialization)
+     */
+    private function connect(): void
+    {
+        if (!$this->connection || !$this->channel) {
+            // Создаем соединение с поддержкой keepalive и heartbeat
+            $this->connection = new AMQPStreamConnection(
+                $this->host,
+                $this->port,
+                $this->username,
+                $this->password,
+                '/',
+                false,   // insist
+                'AMQPLAIN',   // login_method
+                null,   // login_response
+                'en_US',   // locale
+                5.0,   // timeout на установку соединения
+                5.0,   // timeout на чтение
+                null,   // write_timeout
+                $this->keepAlive, // Включаем TCP Keepalive
+                $this->heartbeatInterval // Периодический heartbeat
+            );
+            $this->channel = $this->connection->channel();
+        }
     }
 
     /**
      * 📌 Отправка RPC-запроса (API Gateway → Users)
      */
-    public function sendRpcRequest(string $queue, string $action, array $data, int $timeout = 5): ?array
+    public function sendRpcRequest(string $queue, string $action, array $payload, int $timeout = 3): MicroserviceResponse
     {
+        $this->connect();
+
         // Объявляем очередь (гарантируем, что она существует)
         $this->channel->queue_declare($queue, false, true, false, false);
 
@@ -32,27 +70,34 @@ class RabbitMQService
         $this->channel->queue_declare($replyQueue, false, false, false, false);
 
         $correlationId = uniqid();
-
-        $message = [
-            'action' => $action,
-            'data' => $data
-        ];
+        $message = json_encode(['action' => $action, 'payload' => $payload]);
 
         // Создаем сообщение
-        $msg = new AMQPMessage(json_encode($message), [
+        $msg = new AMQPMessage($message, [
             'correlation_id' => $correlationId,
             'reply_to' => $replyQueue,
-            'delivery_mode'  => 2, // 2 = Персистентное сообщение
+            'delivery_mode' => AMQPMessage::DELIVERY_MODE_PERSISTENT, // 2 = Персистентное сообщение
         ]);
 
-        // Отправляем сообщение в очередь RabbitMQ
-        $this->channel->basic_publish($msg, '', $queue);
+        try {
+            // Отправляем сообщение
+            $this->channel->basic_publish($msg, '', $queue);
+        } catch (\Exception $e) {
+            throw new MicroserviceException('Failed to publish message to RabbitMQ', 500, ['error' => $e->getMessage()]);
+        }
 
-        // Ждем ответ
+        return $this->waitForResponse($replyQueue, $correlationId, $timeout);
+    }
+
+    /**
+     * 📌 Ожидание ответа от сервиса
+     */
+    private function waitForResponse(string $replyQueue, string $correlationId, int $timeout): MicroserviceResponse
+    {
         $response = null;
         $startTime = time();
 
-        $callback = function ($msg) use (&$response, $correlationId) {
+        $callback = function (AMQPMessage $msg) use (&$response, $correlationId) {
             if ($msg->get('correlation_id') === $correlationId) {
                 $response = json_decode($msg->getBody(), true);
             }
@@ -60,21 +105,25 @@ class RabbitMQService
 
         $this->channel->basic_consume($replyQueue, '', false, true, false, false, $callback);
 
-//        while (!$response) {
-//            $this->channel->wait();
-//        }
-//
-//        return $response;
-
-        while ($response === null) {
-            $this->channel->wait(null, false, 1); // Ждем 1 секунду
-
-            if ((time() - $startTime) > $timeout) {
-                throw new \Exception('Microservice has not responded');
+        while ($response === null && (time() - $startTime) < $timeout) {
+            try {
+                $this->channel->wait(null, false, 1); // Ждем 1 секунду
+            } catch (\Exception $e) {
+                throw new MicroserviceException('Error while waiting for response', 500, ['error' => $e->getMessage()]);
             }
         }
 
-        return $response;
+        if ($response === null) {
+            throw new MicroserviceException('Microservice did not respond within timeout', 504);
+        }
+
+        $microserviceResponse = new MicroserviceResponse($response);
+
+        if ($exception = $microserviceResponse->buildException()) {
+            throw $exception;
+        }
+
+        return $microserviceResponse;
     }
 
     /**
@@ -82,7 +131,13 @@ class RabbitMQService
      */
     public function close(): void
     {
-        $this->channel->close();
-        $this->connection->close();
+        if ($this->channel) {
+            $this->channel->close();
+            $this->channel = null;
+        }
+        if ($this->connection) {
+            $this->connection->close();
+            $this->connection = null;
+        }
     }
 }

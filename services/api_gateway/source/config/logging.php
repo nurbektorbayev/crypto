@@ -127,6 +127,14 @@ return [
             'path' => storage_path('logs/laravel.log'),
         ],
 
+        'logstash' => [
+            'driver' => 'monolog',
+            'handler' => Monolog\Handler\SocketHandler::class,
+            'with' => [
+                'connectionString' => 'tcp://' . env('LOGSTASH_HOST') . ':' . env('LOGSTASH_PORT'),
+            ],
+            'formatter' => Monolog\Formatter\JsonFormatter::class,
+        ],
     ],
 
 ];

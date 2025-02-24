@@ -1,5 +1,8 @@
 <?php
 
+declare(strict_types=1);
+
+use App\Exceptions\MicroserviceException;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -15,5 +18,13 @@ return Application::configure(basePath: dirname(__DIR__))
         //
     })
     ->withExceptions(function (Exceptions $exceptions) {
-        //
-    })->create();
+        $exceptions->renderable(function (MicroserviceException $exception, $request) {
+            return response()->json([
+                'status_code' => $exception->getStatusCode(),
+                'message' => $exception->getMessage(),
+                'errors' => $exception->getErrors(),
+                'transfer_trace' => $exception->getTransferTrace(),
+            ], $exception->getStatusCode());
+        });
+    })
+    ->create();

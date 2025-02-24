@@ -1,35 +1,37 @@
 services:
-  users_app:
+  users-app:
     build:
       context: ../../  # Контекст сборки теперь на 2 уровня выше, в services
       dockerfile: common/laravel/Dockerfile  # Путь к Dockerfile внутри папки common/laravel
       args:
         PROJECT_NAME: users
-    container_name: users_app
+    container_name: users-app
     volumes:
       - ../source:/var/www  # Монтируем исходный код Laravel в контейнер
     networks:
       - crypto_network
     depends_on:
-      - users_db
+      - users-db
     environment:
-      - DB_HOST=users_db
+      - DB_HOST=users-db
       - DB_PORT=5432
       - DB_DATABASE=${DB_POSTGRES_DATABASE}
       - DB_USERNAME=${DB_POSTGRES_USERNAME}
       - DB_PASSWORD=${DB_POSTGRES_PASSWORD}
-      - RABBITMQ_HOST=rabbitmq
-      - RABBITMQ_PORT=5672
+      - RABBITMQ_HOST=${RABBITMQ_HOST}
+      - RABBITMQ_PORT=${RABBITMQ_PORT}
       - RABBITMQ_USERNAME=${RABBITMQ_USERNAME}
       - RABBITMQ_PASSWORD=${RABBITMQ_PASSWORD}
       - RABBITMQ_QUEUE=users
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PORT=${REDIS_PORT}
       - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - LOGSTASH_HOST=${LOGSTASH_HOST}
+      - LOGSTASH_PORT=${LOGSTASH_PORT}
 
-  users_db:
+  users-db:
     image: postgres:13  # Используем официальный образ PostgreSQL
-    container_name: users_db
+    container_name: users-db
     environment:
       - POSTGRES_DB=${DB_POSTGRES_DATABASE}
       - POSTGRES_USER=${DB_POSTGRES_USERNAME}

@@ -9,53 +9,50 @@ use App\Transport\Requests\Auth\LoginWithTelegramRequest;
 use App\Transport\Requests\Auth\RegisterWithEmailRequest;
 use App\Transport\Requests\Auth\RegisterWithTelegramRequest;
 use App\Transport\Requests\Auth\ValidateTokenRequest;
-use App\Transport\Responses\FormattedJSONResponse;
 use App\Transport\Responses\TransformsResponses;
 use App\Transport\Transformers\User\UserTransformer;
 use App\Repositories\UserRepository;
-use App\Services\TelegramService;
-use Illuminate\Http\JsonResponse;
 
 class AuthGateway
 {
     use TransformsResponses;
 
-    public function __construct(private TelegramService $telegramService, private UserRepository $userRepository)
+    public function __construct(private UserRepository $userRepository)
     {
         $this->setModelTransformer(new UserTransformer());
     }
 
-    public function registerWithTelegram(RegisterWithTelegramRequest $request): JsonResponse
+    public function registerWithTelegram(RegisterWithTelegramRequest $request): array
     {
-        $user = $this->userRepository->registerWithTelegram($request->validated(), $request->user());
+        $user = $this->userRepository->registerWithTelegram($request->all(), $request->user());
 
-        return FormattedJSONResponse::created($this->convertModelJsonData($request, $user, ['token']), 'User has been created');
+        return $this->convertModelJsonData($request, $user, ['token']);
     }
 
-    public function registerWithEmail(RegisterWithEmailRequest $request): JsonResponse
+    public function registerWithEmail(RegisterWithEmailRequest $request): array
     {
-        $user = $this->userRepository->registerWithEmail($request->validated(), $request->user());
+        $user = $this->userRepository->registerWithEmail($request->all(), $request->user());
 
-        return FormattedJSONResponse::created($this->convertModelJsonData($request, $user, ['token']), 'User has been created');
+        return $this->convertModelJsonData($request, $user, ['token']);
     }
 
-    public function loginWithTelegram(LoginWithTelegramRequest $request): JsonResponse
+    public function loginWithTelegram(LoginWithTelegramRequest $request): array
     {
-        $user = $this->userRepository->findOneByTelegramId($request->validated('telegram_id'));
+        $user = $this->userRepository->findOneByTelegramId($request->get('telegram_id'));
 
-        return FormattedJSONResponse::show($this->convertModelJsonData($request, $user, ['token']), 'User logged in successfully');
+        return $this->convertModelJsonData($request, $user, ['token']);
     }
 
-    public function loginWithEmail(LoginWithEmailRequest $request): JsonResponse
+    public function loginWithEmail(LoginWithEmailRequest $request): array
     {
-        $user = $this->userRepository->findOneByEmail($request->validated('email'));
+        $user = $this->userRepository->findOneByEmail($request->get('email'));
 
-        return FormattedJSONResponse::show($this->convertModelJsonData($request, $user, ['token']), 'User logged in successfully');
+        return $this->convertModelJsonData($request, $user, ['token']);
     }
 
     // Метод для валидации токена
-    public function validateToken(ValidateTokenRequest $request): JsonResponse
+    public function validateToken(ValidateTokenRequest $request): array
     {
-        return FormattedJSONResponse::show([], 'Token is valid');
+        return [];
     }
 }

@@ -45,7 +45,7 @@ down() {
 
   # Останавливаем контейнеры с помощью docker-compose
   echo "Остановка сервиса $SERVICE..."
-  docker compose -f $DOCKER_COMPOSE_PATH down
+  docker compose -f $DOCKER_COMPOSE_PATH -p crypto down
 }
 
 # Функция для входа в контейнер
@@ -57,7 +57,7 @@ exec_in_container() {
   CONTAINER_NAME_SUFFIX=${CONTAINER_NAME_SUFFIX:-app}
 
   # Собираем имя контейнера
-  CONTAINER_NAME="${SERVICE}_${CONTAINER_NAME_SUFFIX}"
+  CONTAINER_NAME="${SERVICE}-${CONTAINER_NAME_SUFFIX}"
 
   # Проверяем, доступен ли bash в контейнере
   if docker exec $CONTAINER_NAME which bash &>/dev/null; then

@@ -6,6 +6,7 @@ namespace App\Transport\Requests;
 
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Foundation\Precognition;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Http\JsonResponse;
 
@@ -44,5 +45,22 @@ class RabbitMQRequest extends FormRequest
     public function getPage($defaultPage = null): ?int
     {
         return $this->get('page', $defaultPage) ?: 1;
+    }
+
+    public function transportValidation(): void
+    {
+        $this->prepareForValidation();
+
+        $instance = $this->getValidatorInstance();
+
+        if ($this->isPrecognitive()) {
+            $instance->after(Precognition::afterValidationHook($this));
+        }
+
+        if ($instance->fails()) {
+            $this->failedValidation($instance);
+        }
+
+        $this->passedValidation();
     }
 }

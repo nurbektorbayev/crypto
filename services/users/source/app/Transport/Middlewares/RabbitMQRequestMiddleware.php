@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace App\Transport\Middlewares;
 
-use App\Enums\RabbitMQAction;
 use App\Repositories\UserRepository;
-use App\Transport\Responses\FormattedJSONResponse;
+use App\Transport\Message\RabbitMQMessagePayload;
+use App\Transport\Message\RabbitMQMessageRequest;
+use App\Transport\Message\RabbitMQMessageResponse;
+use App\Transport\Requests\RabbitMQRequest;
 use Illuminate\Support\Facades\Validator;
 use PhpAmqpLib\Message\AMQPMessage;
 use App\Services\RabbitMQService;
@@ -19,24 +21,23 @@ class RabbitMQRequestMiddleware
 
     public function handle(AMQPMessage $message, callable $next)
     {
-        $data = json_decode($message->getBody(), true);
-        $correlationId = $message->get('correlation_id');
-        $replyTo = $message->get('reply_to');
-
         try {
-            $action = $this->getRabbitMQAction($data['action'] ?? null);
+            $messageRequest = new RabbitMQMessageRequest($message);
+
+            $action = $messageRequest->getAction();
 
             // Определяем Request-класс по `action`
             $requestClass = $action->getRequestClass();
             if (!$requestClass) {
-                throw new \Exception("Invalid action: " . $data['action']);
+                throw new \Exception("Invalid action: " . $action->value);
             }
 
             // Создаем Laravel Request
-            $request = new $requestClass($data['data'] ?? []);
+            /** @var RabbitMQRequest $request */
+            $request = new $requestClass($messageRequest->getPayload()->toArray());
 
             // Загружаем пользователя, если передан user_id
-            $userId = $data['user_id'] ?? null;
+            $userId = $messageRequest->getUserId();
             $user = is_int($userId) && $userId ? $this->userRepository->findOneById($userId) : null;
             $request->setUserResolver(fn() => $user);
 
@@ -44,35 +45,25 @@ class RabbitMQRequestMiddleware
             $validator = Validator::make($request->all(), $request->rules());
 
             if ($validator->fails()) {
-                $this->sendError($replyTo, $correlationId, 422, $validator->getMessageBag()->first(), $validator->errors()->toArray());
+                $messageResponse = new RabbitMQMessageResponse($messageRequest->getCorrelationId(), new RabbitMQMessagePayload($validator));
+                $this->rabbitMQService->sendResponse($messageResponse, $messageRequest->getReplyTo());
                 return null;
             }
 
+//            if ($validator->fails()) {
+//                $messageResponse = new RabbitMQMessageResponse($messageRequest->getCorrelationId(), new RabbitMQMessagePayload($validator));
+//                $this->rabbitMQService->sendResponse($messageResponse, $messageRequest->getReplyTo());
+//                return null;
+//            }
+
             // Передаем управление в основной обработчик
-            return $next($message, $request);
-        } catch (\Exception $e) {
-            $this->sendError($replyTo, $correlationId, 500, $e->getMessage());
+            return $next($messageRequest, $request);
+        } catch (\Throwable $e) {
+            $messageResponse = new RabbitMQMessageResponse($message->get('correlation_id'), new RabbitMQMessagePayload($e));
+
+            $this->rabbitMQService->sendResponse($messageResponse, $message->get('reply_to'));
+
             return null;
         }
-    }
-
-    private function sendError($replyTo, $correlationId, int $code, string $message, array $errors = []): void
-    {
-        $this->rabbitMQService->sendResponse($correlationId, $replyTo, FormattedJSONResponse::error($code, $message, $errors));
-    }
-
-    private function getRabbitMQAction(?string $action): RabbitMQAction
-    {
-        if ($action === null) {
-            throw new \Exception("Missing 'action' field in request.");
-        }
-        $actionEnum = RabbitMQAction::tryFrom($action);
-
-        if (!$actionEnum) {
-            throw new \Exception("Invalid action: " . $action);
-
-        }
-
-        return $actionEnum;
     }
 }

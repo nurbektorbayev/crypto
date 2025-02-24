@@ -4,10 +4,9 @@ declare(strict_types=1);
 
 namespace App\Services;
 
-use Illuminate\Http\JsonResponse;
+use App\Transport\Message\RabbitMQMessageResponse;
 use PhpAmqpLib\Connection\AMQPStreamConnection;
 use PhpAmqpLib\Channel\AMQPChannel;
-use PhpAmqpLib\Message\AMQPMessage;
 
 class RabbitMQService
 {
@@ -26,15 +25,11 @@ class RabbitMQService
     /**
      * 📌 Отправка ответа от Users обратно в API Gateway
      */
-    public function sendResponse(string $correlationId, string $replyTo, JsonResponse $response): void
+    public function sendResponse(RabbitMQMessageResponse $messageResponse, string $replyTo): void
     {
-        $msg = new AMQPMessage($response->getContent(), [
-            'correlation_id' => $correlationId
-        ]);
+        $originalMessage = $messageResponse->toOriginalMessage();
 
-        info(serialize($msg));
-
-        $this->channel->basic_publish($msg, '', $replyTo);
+        $this->channel->basic_publish($originalMessage, '', $replyTo);
     }
 
     /**

@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Public;
 
 use App\Http\Controllers\ApiController;
 use App\Http\Requests\Auth\LoginWithEmailRequest;
+use App\Http\Responses\FormattedJSONResponse;
 use App\Services\Microservices\UsersMicroservice;
 use Illuminate\Http\JsonResponse;
 use OpenApi\Annotations as OA;
@@ -44,6 +45,6 @@ class AuthController extends ApiController
     {
         $response = $this->usersMicroservice->loginWithEmail($request);
 
-        return new JsonResponse($response);
+        return FormattedJSONResponse::show($response->getPayload());
     }
 }

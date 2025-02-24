@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services\Microservices;
 
 use App\Http\Requests\ApiRequest;
+use App\Services\MicroserviceResponse;
 use App\Services\RabbitMQService;
 
 abstract class AbstractMicroservice
@@ -16,7 +17,7 @@ abstract class AbstractMicroservice
         $this->rabbitMQService = app()->make(RabbitMQService::class);
     }
 
-    public function doRequest(ApiRequest $request, string $action): ?array
+    public function doRequest(ApiRequest $request, string $action): MicroserviceResponse
     {
         return $this->rabbitMQService->sendRpcRequest($this->queue, $action, $request->toArray());
     }

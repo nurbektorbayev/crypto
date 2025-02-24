@@ -1,0 +1,45 @@
+services:
+  elk-elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.6.2
+    container_name: elk-elasticsearch
+    environment:
+      - discovery.type=single-node
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - ELASTIC_PASSWORD=${ELASTICSEARCH_PASSWORD}
+      - xpack.security.enabled=false  # Отключаем защиту (логин/пароль не требуются)
+      - xpack.security.http.ssl.enabled=false  # Отключаем HTTPS
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    networks:
+      - crypto_network
+
+  elk-logstash:
+    image: docker.elastic.co/logstash/logstash:8.6.2
+    container_name: elk-logstash
+    volumes:
+      - ./logstash/logstash.conf:/usr/share/logstash/pipeline/logstash.conf:ro
+    environment:
+      - LS_JAVA_OPTS=-Xms256m -Xmx256m
+      - ELASTICSEARCH_HOSTS=http://elk-elasticsearch:9200
+    depends_on:
+      - elk-elasticsearch
+    networks:
+      - crypto_network
+
+  elk-kibana:
+    image: docker.elastic.co/kibana/kibana:8.6.2
+    container_name: elk-kibana
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elk-elasticsearch:9200
+    depends_on:
+      - elk-elasticsearch
+    ports:
+      - ${KIBANA_EXT_PORT}:5601
+    networks:
+      - crypto_network
+
+networks:
+  crypto_network:
+    driver: bridge
